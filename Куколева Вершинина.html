@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рекомендатор Напитков</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #chat {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 400px;
+            overflow-y: scroll;
+        }
+        .user, .bot {
+            padding: 5px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .user {
+            background-color: #d4edda;
+            align-self: flex-end;
+            text-align: right;
+        }
+        .bot {
+            background-color: #f8d7da;
+            align-self: flex-start;
+        }
+        #input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+        #input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #send {
+            padding: 10px;
+            margin-left: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Чат Рекомендаций Напитков</h1>
+
+    <div id="chat"></div>
+
+    <div id="input-container">
+        <input type="text" id="input" placeholder="Введите ваш ответ..." />
+        <button id="send">Отправить</button>
+    </div>
+
+    <script>
+        const drinks = [
+        { name: "Кока-Кола", sweetness: "высокий", alcoholic: false, carbonated: true, flavor: "цитрусовый" },
+        { name: "Сок апельсиновый", sweetness: "средний", alcoholic: false, carbonated: false, flavor: "цитрусовый" },
+        { name: "Вино", sweetness: "средний", alcoholic: true, carbonated: false, flavor: "ягодный" },
+        { name: "Пиво", sweetness: "низкий", alcoholic: true, carbonated: true, flavor: "фруктовый" },
+        { name: "Лимонад", sweetness: "высокий", alcoholic: false, carbonated: true, flavor: "цитрусовый" },
+        { name: "Грейпфрутовый сок", sweetness: "низкий", alcoholic: false, carbonated: false, flavor: "цитрусовый" },
+        { name: "Мохито", sweetness: "средний", alcoholic: true, carbonated: true, flavor: "цитрусовый" },
+        { name: "Коктейль Пина Колада", sweetness: "высокий", alcoholic: true, carbonated: false, flavor: "фруктовый" },
+        { name: "Чай со льдом", sweetness: "низкий", alcoholic: false, carbonated: false, flavor: "фруктовый" },
+        { name: "Кофе", sweetness: "низкий", alcoholic: false, carbonated: false, flavor: "ягодный" },
+        { name: "Молочный коктейль", sweetness: "высокий", alcoholic: false, carbonated: false, flavor: "ягодный" },
+        { name: "Спрайт", sweetness: "высокий", alcoholic: false, carbonated: true, flavor: "цитрусовый" },
+        { name: "Сок ананасовый", sweetness: "высокий", alcoholic: false, carbonated: false, flavor: "фруктовый" },
+        { name: "Коктейль Маргарита", sweetness: "средний", alcoholic: true, carbonated: false, flavor: "цитрусовый" },
+        { name: "Виски", sweetness: "низкий", alcoholic: true, carbonated: false, flavor: "фруктовый" },
+        { name: "Коктейль Сангрия", sweetness: "высокий", alcoholic: true, carbonated: false, flavor: "ягодный" },
+        { name: "Сок грейпфрута", sweetness: "низкий", alcoholic: false, carbonated: false, flavor: "цитрусовый" },
+        { name: "Коктейль с черной смородиной", sweetness: "средний", alcoholic: true, carbonated: false, flavor: "ягодный" },
+        { name: "Коктейль из белого вина с фруктами", sweetness: "высокий", alcoholic: true, carbonated: false, flavor: "фруктовый" },
+        { name: "Сок персика", sweetness: "высокий", alcoholic: false, carbonated: false, flavor: "фруктовый" },
+        { name: "Коктейль из малины", sweetness: "высокий", alcoholic: true, carbonated: false, flavor: "ягодный" },
+        { name: "Фруктовый коктейль", sweetness: "высокий", alcoholic: false, carbonated: false, flavor: "фруктовый" },
+        { name: "Сок винограда", sweetness: "высокий", alcoholic: false, carbonated: false, flavor: "ягодный" },
+        { name: "Лимонный сок", sweetness: "низкий", alcoholic: false, carbonated: false, flavor: "цитрусовый" },
+        { name: "Сок киви", sweetness: "средний", alcoholic: false, carbonated: false, flavor: "фруктовый" },
+        { name: "Вишневая настойка", sweetness: "средний", alcoholic: true, carbonated: true, flavor: "ягодный" },
+        { name: "Лаймовый сок", sweetness: "низкий", alcoholic: false, carbonated: false, flavor: "цитрусовый" }
+        ];
+
+        let preferences = {};
+        let currentQuestion = 0;
+
+        const questions = [
+            {
+                text: "Какой уровень сладости вам нравится? (высокий, средний, низкий)"
+            },
+            {
+                text: "Предпочитаете алкогольный напиток? (да, нет)"
+            },
+            {
+                text: "Предпочитаете газированный напиток? (да, нет)"
+            },
+            {
+                text: "Какой вкус вам нравится? (цитрусовый, ягодный, фруктовый)"
+            }
+        ];
+
+        const chatDiv = document.getElementById("chat");
+        const inputField = document.getElementById("input");
+        const sendButton = document.getElementById("send");
+
+        function displayMessage(text, isUser = false) {
+            const messageDiv = document.createElement("div");
+            messageDiv.textContent = text;
+            messageDiv.className = isUser ? "user" : "bot";
+            chatDiv.appendChild(messageDiv);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        function displayQuestion() {
+            if (currentQuestion < questions.length) {
+                displayMessage(questions[currentQuestion].text, false);
+            } else {
+                getRecommendations();
+            }
+        }
+
+        function handleAnswer() {
+            const answer = inputField.value;
+            displayMessage(answer, true);
+            preferences[getCurrentPreferenceKey()] = answer;
+            inputField.value = "";
+            currentQuestion++;
+            displayQuestion();
+        }
+
+        function getCurrentPreferenceKey() {
+            return ['sweetness', 'alcoholic', 'carbonated', 'flavor'][currentQuestion];
+        }
+
+        function getRecommendations() {
+            const recommendations = drinks.filter(drink => 
+                drink.sweetness === preferences.sweetness &&
+                drink.alcoholic === (preferences.alcoholic === "да") &&
+                drink.carbonated === (preferences.carbonated === "да") &&
+                drink.flavor === preferences.flavor
+            );
+
+            if (recommendations.length > 0) {
+                displayMessage("Вам могут подойти следующие напитки:", false);
+                recommendations.forEach(drink => {
+                    displayMessage(drink.name, false);
+                });
+            } else {
+                displayMessage("Извините, подходящих напитков не найдено.", false);
+            }
+        }
+
+        sendButton.onclick = handleAnswer;
+        inputField.addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                handleAnswer();
+            }
+        });
+
+        displayQuestion();
+    </script>
+</body>
+</html>
